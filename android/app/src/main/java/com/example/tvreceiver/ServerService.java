@@ -66,6 +66,11 @@ public class ServerService extends Service implements GoServerManager.ServerCall
         updateNotification("服务器错误: " + error);
     }
 
+    @Override
+    public void onArchitectureDetected(String arch) {
+        Log.i(TAG, "Device architecture detected: " + arch);
+    }
+
     private void setupFileObserver() {
         String videoPath = serverManager.getVideoPath();
         fileObserver = new VideoFileObserver(videoPath, path -> {
