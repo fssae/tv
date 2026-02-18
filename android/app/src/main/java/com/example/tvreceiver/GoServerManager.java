@@ -25,6 +25,34 @@ public class GoServerManager {
         this.videoDir = context.getFilesDir().getAbsolutePath();
     }
 
+    private String getDeviceArchitecture() {
+        String[] supportedAbis = android.os.Build.SUPPORTED_ABIS;
+        for (String abi : supportedAbis) {
+            if (abi.startsWith("arm64")) {
+                return "arm64";
+            } else if (abi.startsWith("armeabi-v7a") || abi.startsWith("arm")) {
+                return "arm32";
+            } else if (abi.startsWith("x86_64")) {
+                return "x64";
+            } else if (abi.startsWith("x86")) {
+                return "x86";
+            }
+        }
+        return "arm64";
+    }
+
+    private String getBinaryAssetPath(String arch) {
+        switch (arch) {
+            case "arm32":
+                return "server/libserver_arm32.so";
+            case "x64":
+                return "server/libserver_x64.so";
+            case "arm64":
+            default:
+                return "server/libserver_arm64.so";
+        }
+    }
+
     public interface ServerCallback {
         void onServerStarted(String ip, int port);
         void onServerFailed(String error);
@@ -123,14 +151,16 @@ public class GoServerManager {
     }
 
     private String prepareBinary() {
+        String arch = getDeviceArchitecture();
+        String assetPath = getBinaryAssetPath(arch);
         File binaryFile = new File(context.getFilesDir(), BINARY_NAME);
         String binaryPath = binaryFile.getAbsolutePath();
 
         try {
-            boolean needCopy = !binaryFile.exists() || isBinaryOutdated();
+            boolean needCopy = !binaryFile.exists() || isBinaryOutdated(assetPath);
 
             if (needCopy) {
-                copyBinaryFromAssets(binaryFile);
+                copyBinaryFromAssets(binaryFile, assetPath);
             }
 
             if (!binaryFile.canExecute()) {
@@ -140,6 +170,7 @@ public class GoServerManager {
                 }
             }
 
+            Log.i(TAG, "Using architecture: " + arch + ", binary: " + binaryPath);
             return binaryPath;
         } catch (Exception e) {
             Log.e(TAG, "Failed to prepare binary", e);
@@ -147,9 +178,9 @@ public class GoServerManager {
         }
     }
 
-    private boolean isBinaryOutdated() {
+    private boolean isBinaryOutdated(String assetPath) {
         try {
-            long assetLastModified = getAssetLastModified();
+            long assetLastModified = getAssetLastModified(assetPath);
             File binaryFile = new File(context.getFilesDir(), BINARY_NAME);
             if (!binaryFile.exists()) {
                 return true;
@@ -160,9 +191,9 @@ public class GoServerManager {
         }
     }
 
-    private long getAssetLastModified() {
+    private long getAssetLastModified(String assetPath) {
         try {
-            android.content.res.AssetFileDescriptor afd = context.getAssets().openFd(BINARY_ASSET_PATH);
+            android.content.res.AssetFileDescriptor afd = context.getAssets().openFd(assetPath);
             afd.close();
             return System.currentTimeMillis();
         } catch (IOException e) {
@@ -170,8 +201,8 @@ public class GoServerManager {
         }
     }
 
-    private void copyBinaryFromAssets(File destFile) throws IOException {
-        try (InputStream is = context.getAssets().open(BINARY_ASSET_PATH);
+    private void copyBinaryFromAssets(File destFile, String assetPath) throws IOException {
+        try (InputStream is = context.getAssets().open(assetPath);
              FileOutputStream fos = new FileOutputStream(destFile)) {
             byte[] buffer = new byte[8192];
             int bytesRead;
@@ -188,7 +219,7 @@ public class GoServerManager {
             throw new IOException("Failed to set readable permission");
         }
 
-        Log.i(TAG, "Binary copied to: " + destFile.getAbsolutePath());
+        Log.i(TAG, "Binary copied from " + assetPath + " to: " + destFile.getAbsolutePath());
     }
 
     private void parseServerInfo(String line) {
