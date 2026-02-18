@@ -68,7 +68,7 @@ public class VideoPlayerManager implements Player.Listener {
         MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(videoFile));
         player.setMediaItem(mediaItem);
         player.prepare();
-        player.playWhenReady = true;
+        player.setPlayWhenReady(true);
 
         Log.i(TAG, "Started playing: " + videoPath);
     }

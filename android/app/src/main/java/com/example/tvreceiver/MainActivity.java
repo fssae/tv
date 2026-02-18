@@ -73,8 +73,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void startServer() {
-        showStatus("正在启动服务器...");
+        progressBar.setVisibility(View.VISIBLE);
+        tvStatus.setText("正在启动服务器...");
         serverManager.startServer(this);
+    }
+
+    private void showStatus(String status) {
+        runOnUiThread(() -> {
+            tvStatus.setText(status);
+        });
     }
 
     private void setupFileObserver() {
