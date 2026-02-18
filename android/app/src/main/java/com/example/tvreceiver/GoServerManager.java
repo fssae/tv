@@ -71,8 +71,10 @@ public class GoServerManager {
             try {
                 String binaryPath = prepareBinary();
                 if (binaryPath == null) {
+                    String error = "Failed to prepare binary. Please check device architecture and try again.";
+                    Log.e(TAG, error);
                     if (callback != null) {
-                        callback.onServerFailed("Failed to prepare binary");
+                        callback.onServerFailed(error);
                     }
                     return;
                 }
@@ -109,14 +111,17 @@ public class GoServerManager {
                         callback.onServerStarted(ip, port);
                     }
                 } else {
+                    String error = "Server process died immediately. Check logs for details.";
+                    Log.e(TAG, error);
                     if (callback != null) {
-                        callback.onServerFailed("Server process died immediately");
+                        callback.onServerFailed(error);
                     }
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to start server", e);
+                String error = "Failed to start server: " + e.getMessage();
+                Log.e(TAG, error, e);
                 if (callback != null) {
-                    callback.onServerFailed(e.getMessage());
+                    callback.onServerFailed(error);
                 }
             }
         }).start();
@@ -156,21 +161,27 @@ public class GoServerManager {
         File binaryFile = new File(context.getFilesDir(), BINARY_NAME);
         String binaryPath = binaryFile.getAbsolutePath();
 
+        Log.i(TAG, "Device architecture: " + arch);
+        Log.i(TAG, "Asset path: " + assetPath);
+        Log.i(TAG, "Binary path: " + binaryPath);
+
         try {
             boolean needCopy = !binaryFile.exists() || isBinaryOutdated(assetPath);
+            Log.i(TAG, "Need copy: " + needCopy + ", binary exists: " + binaryFile.exists());
 
             if (needCopy) {
                 copyBinaryFromAssets(binaryFile, assetPath);
             }
 
             if (!binaryFile.canExecute()) {
+                Log.w(TAG, "Binary not executable, setting permission...");
                 if (!binaryFile.setExecutable(true, false)) {
                     Log.e(TAG, "Failed to set executable permission");
                     return null;
                 }
             }
 
-            Log.i(TAG, "Using architecture: " + arch + ", binary: " + binaryPath);
+            Log.i(TAG, "Binary prepared successfully: " + binaryPath);
             return binaryPath;
         } catch (Exception e) {
             Log.e(TAG, "Failed to prepare binary", e);
@@ -202,14 +213,30 @@ public class GoServerManager {
     }
 
     private void copyBinaryFromAssets(File destFile, String assetPath) throws IOException {
-        try (InputStream is = context.getAssets().open(assetPath);
-             FileOutputStream fos = new FileOutputStream(destFile)) {
+        Log.i(TAG, "Copying binary from assets: " + assetPath);
+        
+        InputStream is = null;
+        try {
+            is = context.getAssets().open(assetPath);
+        } catch (IOException e) {
+            Log.e(TAG, "Asset file not found: " + assetPath);
+            throw new IOException("Asset file not found: " + assetPath, e);
+        }
+        
+        try (FileOutputStream fos = new FileOutputStream(destFile)) {
             byte[] buffer = new byte[8192];
             int bytesRead;
+            long totalBytes = 0;
             while ((bytesRead = is.read(buffer)) != -1) {
                 fos.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
             }
             fos.flush();
+            Log.i(TAG, "Copied " + totalBytes + " bytes");
+        } finally {
+            if (is != null) {
+                is.close();
+            }
         }
 
         if (!destFile.setExecutable(true, false)) {
