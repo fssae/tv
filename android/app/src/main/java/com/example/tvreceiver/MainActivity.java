@@ -1,5 +1,7 @@
 package com.example.tvreceiver;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -18,8 +20,16 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+
 import java.io.File;
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements
         GoServerManager.ServerCallback,
@@ -102,9 +112,38 @@ public class MainActivity extends AppCompatActivity implements
             tvStatus.setTextColor(getColor(android.R.color.holo_green_dark));
             tvHint.setText("使用手机浏览器访问以上地址上传视频");
             infoContainer.setVisibility(View.VISIBLE);
+
+            String url = "http://" + ip + ":" + port;
+            generateQRCode(url);
         });
 
         setupFileObserver();
+    }
+
+    private void generateQRCode(String text) {
+        try {
+            QRCodeWriter writer = new QRCodeWriter();
+            Map<EncodeHintType, Object> hints = new HashMap<>();
+            hints.put(EncodeHintType.MARGIN, 1);
+            
+            BitMatrix bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 400, 400, hints);
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            
+            qrCodeView.setImageBitmap(bitmap);
+            qrCodeView.setVisibility(View.VISIBLE);
+            Log.i(TAG, "QR Code generated: " + text);
+        } catch (WriterException e) {
+            Log.e(TAG, "Failed to generate QR code", e);
+            qrCodeView.setVisibility(View.GONE);
+        }
     }
 
     @Override
