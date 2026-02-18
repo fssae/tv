@@ -19,10 +19,15 @@ public class GoServerManager {
     private Process goProcess;
     private String videoDir;
     private int port = 8080;
+    private ServerCallback callback;
 
     public GoServerManager(Context context) {
         this.context = context.getApplicationContext();
         this.videoDir = context.getFilesDir().getAbsolutePath();
+    }
+
+    public void setCallback(ServerCallback callback) {
+        this.callback = callback;
     }
 
     private String getDeviceArchitecture() {
@@ -56,6 +61,7 @@ public class GoServerManager {
     public interface ServerCallback {
         void onServerStarted(String ip, int port);
         void onServerFailed(String error);
+        void onArchitectureDetected(String arch);
     }
 
     public synchronized void startServer(ServerCallback callback) {
@@ -164,6 +170,10 @@ public class GoServerManager {
         Log.i(TAG, "Device architecture: " + arch);
         Log.i(TAG, "Asset path: " + assetPath);
         Log.i(TAG, "Binary path: " + binaryPath);
+
+        if (callback != null) {
+            callback.onArchitectureDetected(arch);
+        }
 
         try {
             boolean needCopy = !binaryFile.exists() || isBinaryOutdated(assetPath);

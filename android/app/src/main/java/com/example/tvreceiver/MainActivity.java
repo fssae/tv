@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void initManagers() {
         serverManager = new GoServerManager(this);
+        serverManager.setCallback(this);
         playerManager = new VideoPlayerManager(this, videoContainer);
         playerManager.setListener(this);
     }
@@ -99,6 +100,15 @@ public class MainActivity extends AppCompatActivity implements
         fileObserver = new VideoFileObserver(videoPath, this);
         fileObserver.startWatching();
         Log.i(TAG, "FileObserver started for: " + videoPath);
+    }
+
+    @Override
+    public void onArchitectureDetected(String arch) {
+        runOnUiThread(() -> {
+            String archText = "设备架构: " + arch;
+            tvHint.setText(archText);
+            Log.i(TAG, "Device architecture detected: " + arch);
+        });
     }
 
     @Override
@@ -150,14 +160,20 @@ public class MainActivity extends AppCompatActivity implements
     public void onServerFailed(String error) {
         runOnUiThread(() -> {
             progressBar.setVisibility(View.GONE);
-            tvStatus.setText("服务器启动失败: " + error);
+            tvStatus.setText("服务器启动失败");
             tvStatus.setTextColor(getColor(android.R.color.holo_red_dark));
+            tvHint.setText(error);
+            tvHint.setTextColor(getColor(android.R.color.holo_red_dark));
+            tvHint.setTextSize(14);
 
             handler.postDelayed(() -> {
                 progressBar.setVisibility(View.VISIBLE);
                 tvStatus.setText("正在重试...");
+                tvHint.setText("上传视频后将自动播放");
+                tvHint.setTextColor(getColor(android.R.color.darker_gray));
+                tvHint.setTextSize(16);
                 serverManager.restartServer(MainActivity.this);
-            }, 3000);
+            }, 5000);
         });
     }
 
