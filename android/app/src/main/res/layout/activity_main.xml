@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1a1a2e"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/infoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📺 视频投屏接收器"
+            android:textColor="#ffffff"
+            android:textSize="36sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="200dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            android:background="#667eea" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="正在初始化..."
+            android:textColor="#aaaaaa"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ip_card_bg"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="请在手机浏览器中访问"
+                android:textColor="#888888"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="http://"
+                    android:textColor="#667eea"
+                    android:textSize="32sp" />
+
+                <TextView
+                    android:id="@+id/tvIP"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0.0.0.0"
+                    android:textColor="#ffffff"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":"
+                    android:textColor="#667eea"
+                    android:textSize="32sp" />
+
+                <TextView
+                    android:id="@+id/tvPort"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="8080"
+                    android:textColor="#ffffff"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="上传视频后将自动播放"
+            android:textColor="#666666"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/qrCodeView"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="24dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/videoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+</FrameLayout>
